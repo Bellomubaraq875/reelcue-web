@@ -3,9 +3,6 @@ import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./prisma";
 
-// Fundamental auth config — swap/add providers (Google, GitHub) as needed.
-// Email magic-link keeps signup frictionless for creators; external
-// reviewers never touch this — they use tokenized review links instead.
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
