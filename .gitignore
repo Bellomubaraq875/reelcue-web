@@ -1,0 +1,29 @@
+# -----------------------------------------------------------------------------
+# Comments start with a hashtag. Git ignores blank lines and comments.
+# -----------------------------------------------------------------------------
+
+# Ignore a specific file by name
+config.json
+.env
+
+# Ignore all files with a specific extension
+*.log
+*.tmp
+*.bak
+
+# Ignore an entire directory (and everything inside it)
+node_modules/
+build/
+target/
+
+# Ignore files inside a subfolder, but keep the folder itself empty
+# (Useful when combined with an empty placeholder file like .gitkeep)
+logs/*
+!logs/.gitkeep
+
+# Ignore a specific file inside any subfolder
+**/debug.log
+
+# Negation: Ignore all .pdf files EXCEPT important.pdf
+*.pdf
+!important.pdf

@@ -1,0 +1,207 @@
+// Reelcue — core data model
+// Run `prisma migrate dev` from this package after setting DATABASE_URL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")   // pooled connection (pgbouncer) for app + worker
+  directUrl = env("DIRECT_URL")     // unpooled, used only for migrations
+}
+
+// ─── Enums ──────────────────────────────────────────────
+
+enum UserRole {
+  CREATOR
+  ADMIN
+}
+
+enum VideoSourceType {
+  UPLOAD
+  YOUTUBE
+}
+
+enum ProcessingStatus {
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum ApprovalStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+enum LinkPermission {
+  VIEW
+  COMMENT
+  APPROVE
+}
+
+enum AIJobType {
+  TRANSCRIBE
+  SCRIPT_CLEANUP
+  CAPTIONS
+  SOP_GENERATION
+  DUBBING
+}
+
+enum AIJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ─── Core models ────────────────────────────────────────
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  role      UserRole  @default(CREATOR)
+  createdAt DateTime  @default(now())
+
+  projects  Project[]
+}
+
+model Project {
+  id         String         @id @default(cuid())
+  name       String
+  clientName String?
+  ownerId    String
+  owner      User           @relation(fields: [ownerId], references: [id])
+  createdAt  DateTime       @default(now())
+
+  versions   VideoVersion[]
+
+  @@index([ownerId])
+}
+
+model VideoVersion {
+  id             String            @id @default(cuid())
+  projectId      String
+  project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  versionNumber  Int
+  sourceType     VideoSourceType
+  sourceUrl      String?           // for YOUTUBE
+  storageUrl     String?           // for UPLOAD, once processed
+  status         ProcessingStatus  @default(PROCESSING)
+  approvalStatus ApprovalStatus    @default(PENDING)
+
+  rawTranscript  String?           @db.Text
+  cleanedScript  String?           @db.Text
+
+  createdAt      DateTime          @default(now())
+
+  comments       Comment[]
+  reviewLinks    ReviewLink[]
+  captionTrack   CaptionTrack?
+  article        Article?
+  aiJobs         AIJob[]
+
+  @@index([projectId])
+  @@unique([projectId, versionNumber])
+}
+
+model Comment {
+  id               String    @id @default(cuid())
+  versionId        String
+  version          VideoVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  // external reviewers aren't authenticated users, so identity is captured inline
+  authorName       String
+  authorEmail      String?
+
+  timestampSeconds Float
+  body             String    @db.Text
+  annotationData   Json?     // drawing/canvas overlay coordinates, optional
+
+  parentId         String?
+  parent           Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies          Comment[] @relation("CommentReplies")
+
+  createdAt        DateTime  @default(now())
+
+  @@index([versionId])
+}
+
+model ReviewLink {
+  id         String         @id @default(cuid())
+  versionId  String
+  version    VideoVersion   @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  token      String         @unique @default(cuid())
+  permission LinkPermission @default(COMMENT)
+  expiresAt  DateTime?
+  revoked    Boolean        @default(false)
+
+  createdAt  DateTime       @default(now())
+  opens      LinkOpen[]
+
+  @@index([versionId])
+}
+
+model LinkOpen {
+  id           String      @id @default(cuid())
+  reviewLinkId String
+  reviewLink   ReviewLink  @relation(fields: [reviewLinkId], references: [id], onDelete: Cascade)
+  viewerEmail  String?
+  openedAt     DateTime    @default(now())
+
+  @@index([reviewLinkId])
+}
+
+model CaptionTrack {
+  id          String       @id @default(cuid())
+  versionId   String       @unique
+  version     VideoVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  vttData     String       @db.Text   // WebVTT cue data
+  stylePreset Json?        // font, color, position — client renders as overlay
+  createdAt   DateTime     @default(now())
+}
+
+model Article {
+  id        String        @id @default(cuid())
+  versionId String        @unique
+  version   VideoVersion  @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  title     String
+  createdAt DateTime      @default(now())
+
+  steps     ArticleStep[]
+}
+
+model ArticleStep {
+  id               String  @id @default(cuid())
+  articleId        String
+  article          Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  order            Int
+  text             String  @db.Text
+  screenshotUrl    String?
+  timestampSeconds Float?
+
+  @@index([articleId])
+}
+
+model AIJob {
+  id          String       @id @default(cuid())
+  versionId   String
+  version     VideoVersion @relation(fields: [versionId], references: [id], onDelete: Cascade)
+
+  type        AIJobType
+  status      AIJobStatus  @default(PENDING)
+  error       String?      @db.Text
+
+  createdAt   DateTime     @default(now())
+  completedAt DateTime?
+
+  @@index([versionId])
+  @@index([status])
+}
