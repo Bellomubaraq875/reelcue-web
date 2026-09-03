@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Spectral, Manrope } from "next/font/google";
-import { Providers } from "./providers";
-import "./globals.css";
-
+import { Providers } from "@/app/providers"
+import "../app/"
 // Spectral (serif) carries headings — an editorial, screening-room feel.
 // Manrope (sans) handles UI and body text. Two families, clearly distinct.
 const serif = Spectral({
