@@ -1,32 +1,27 @@
-import type { Metadata } from "next";
-import { Spectral, Manrope } from "next/font/google";
-import { Providers } from "@/app/providers"
-import "../app/"
-// Spectral (serif) carries headings — an editorial, screening-room feel.
-// Manrope (sans) handles UI and body text. Two families, clearly distinct.
-const serif = Spectral({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-serif",
-});
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-const sans = Manrope({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-sans",
-});
+@layer base {
+  h1, h2, h3 {
+    font - family: var(--font - serif);
+    letter - spacing: -0.01em;
+  }
 
-export const metadata: Metadata = {
-  title: "Reelcue",
-  description: "Fast, tokenized video review and approval for teams and clients.",
-};
+  ::selection {
+    background - color: theme("colors.brass.100");
+  }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
-      <body className="bg-paper font-sans text-ink antialiased">
-        <Providers>{children}</Providers>
-      </body>
-    </html>
-  );
+  : focus - visible {
+    outline: 2px solid theme("colors.brass.DEFAULT");
+    outline - offset: 2px;
+  }
+}
+
+@media(prefers - reduced - motion: reduce) {
+  *, *:: before, *::after {
+    animation - duration: 0.01ms!important;
+    animation - iteration - count: 1!important;
+    transition - duration: 0.01ms!important;
+  }
 }
