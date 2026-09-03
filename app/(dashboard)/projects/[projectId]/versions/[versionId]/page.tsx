@@ -9,6 +9,7 @@ import { Timeline } from "@/components/player/Timeline";
 import { ProcessingPanel } from "@/components/player/ProcessingPanel";
 import { CommentThread } from "@/components/comments/CommentThread";
 import { CommentComposer } from "@/components/comments/CommentComposer";
+import { useSession } from "next-auth/react";
 
 const APPROVAL_LABEL: Record<ApprovalStatus, string> = {
     PENDING: "Pending",
@@ -26,13 +27,25 @@ export default function VersionReviewPage({
     const { data: comments } = useComments(params.versionId);
     const { mutate: updateApproval, isPending: approvalPending } = useUpdateApproval(
         params.versionId
+    
     );
+    const { data: session } = useSession();
 
     if (versionLoading) return null; // loading.tsx skeleton covers this
     if (!version) return null;
 
     const isProcessing = version.status === "PROCESSING";
     const commentList = comments ?? [];
+
+    {
+        !isProcessing && session?.user && (
+            <CommentComposer
+                versionId={params.versionId}
+                authorName={session.user.name ?? session.user.email ?? "Creator"}
+                authorEmail={session.user.email ?? undefined}
+            />
+        )
+    }
 
     return (
         <div className="mx-auto max-w-6xl px-8 py-10">
