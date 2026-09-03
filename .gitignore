@@ -1,29 +1,39 @@
-# -----------------------------------------------------------------------------
-# Comments start with a hashtag. Git ignores blank lines and comments.
-# -----------------------------------------------------------------------------
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Ignore a specific file by name
-config.json
-.env
+# testing
+/coverage
 
-# Ignore all files with a specific extension
-*.log
-*.tmp
-*.bak
+# next.js
+/.next/
+/out/
 
-# Ignore an entire directory (and everything inside it)
-node_modules/
-build/
-target/
+# production
+/build
 
-# Ignore files inside a subfolder, but keep the folder itself empty
-# (Useful when combined with an empty placeholder file like .gitkeep)
-logs/*
-!logs/.gitkeep
+# misc
+.DS_Store
+*.pem
 
-# Ignore a specific file inside any subfolder
-**/debug.log
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# Negation: Ignore all .pdf files EXCEPT important.pdf
-*.pdf
-!important.pdf
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
