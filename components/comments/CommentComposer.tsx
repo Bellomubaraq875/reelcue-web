@@ -42,10 +42,10 @@ export function CommentComposer({
     }
 
     return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 text-xs text-neutral-500">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-2 border-t border-line pt-4">
+            <div className="flex items-center gap-2 text-xs text-ink-500">
                 <span>Commenting at</span>
-                <span className="rounded bg-neutral-100 px-1.5 py-0.5 font-medium text-neutral-700">
+                <span className="bg-brass-100 px-1.5 py-0.5 font-medium text-brass-600">
                     {formatTimestamp(currentTime)}
                 </span>
             </div>
@@ -54,14 +54,14 @@ export function CommentComposer({
                 onChange={(e) => setBody(e.target.value)}
                 placeholder="Leave feedback at this moment in the video..."
                 rows={3}
-                className="w-full rounded-lg border border-neutral-300 p-2 text-sm outline-none focus:border-neutral-500"
+                className="w-full border border-line bg-paper-100 p-2 text-sm text-ink outline-none focus:border-ink"
             />
             <button
                 type="submit"
                 disabled={isPending || !body.trim()}
-                className="self-end rounded-lg bg-neutral-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+                className="self-end bg-ink px-4 py-2 text-sm font-medium text-paper-100 transition hover:bg-ink-800 disabled:opacity-40"
             >
-                {isPending ? "Posting..." : "Post comment"}
+                {isPending ? "Posting…" : "Post comment"}
             </button>
         </form>
     );
