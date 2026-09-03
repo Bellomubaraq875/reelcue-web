@@ -27,7 +27,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
             ref={videoRef}
             src={src}
             controls
-            className="w-full rounded-lg bg-black"
+            className="w-full bg-ink"
             onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
             onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
             onPlay={() => setIsPlaying(true)}
