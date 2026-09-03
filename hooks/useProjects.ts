@@ -1,38 +1,30 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
-export type Project = {
+export type VideoVersion = {
     id: string;
-    name: string;
-    clientName: string | null;
+    versionNumber: number;
+    status: "PROCESSING" | "READY" | "FAILED";
+    approvalStatus: "PENDING" | "IN_REVIEW" | "APPROVED" | "CHANGES_REQUESTED";
     createdAt: string;
 };
 
-async function fetchProjects(): Promise<Project[]> {
-    const res = await fetch("/api/projects");
-    if (!res.ok) throw new Error("Failed to load projects");
+export type ProjectDetail = {
+    id: string;
+    name: string;
+    clientName: string | null;
+    versions: VideoVersion[];
+};
+
+async function fetchProject(projectId: string): Promise<ProjectDetail> {
+    const res = await fetch(`/api/projects/${projectId}`);
+    if (!res.ok) throw new Error("Failed to load project");
     return res.json();
 }
 
-async function createProject(input: { name: string; clientName?: string }) {
-    const res = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(input),
-    });
-    if (!res.ok) throw new Error("Failed to create project");
-    return res.json();
-}
-
-export function useProjects() {
-    return useQuery({ queryKey: ["projects"], queryFn: fetchProjects });
-}
-
-export function useCreateProject() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: createProject,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["projects"] });
-        },
+export function useProject(projectId: string) {
+    return useQuery({
+        queryKey: ["project", projectId],
+        queryFn: () => fetchProject(projectId),
+        enabled: !!projectId,
     });
 }
