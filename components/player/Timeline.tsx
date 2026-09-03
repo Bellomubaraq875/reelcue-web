@@ -24,13 +24,10 @@ export function Timeline({ comments }: TimelineProps) {
     return (
         <div className="relative h-8 w-full">
             <div
-                className="absolute top-1/2 h-1.5 w-full -translate-y-1/2 cursor-pointer rounded-full bg-neutral-200"
+                className="absolute top-1/2 h-1 w-full -translate-y-1/2 cursor-pointer bg-line"
                 onClick={handleScrubClick}
             >
-                <div
-                    className="h-full rounded-full bg-neutral-900"
-                    style={{ width: `${progressPct}%` }}
-                />
+                <div className="h-full bg-ink" style={{ width: `${progressPct}%` }} />
             </div>
 
             {duration > 0 &&
@@ -39,7 +36,7 @@ export function Timeline({ comments }: TimelineProps) {
                         key={comment.id}
                         title={comment.body}
                         onClick={() => requestSeek(comment.timestampSeconds)}
-                        className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-amber-500 hover:scale-125"
+                        className="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper bg-brass transition hover:scale-125"
                         style={{
                             left: `${(comment.timestampSeconds / duration) * 100}%`,
                         }}
