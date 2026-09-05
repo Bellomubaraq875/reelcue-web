@@ -1,27 +1,32 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+import type { Metadata } from "next";
+import { Spectral, Manrope } from "next/font/google";
+import { Providers } from "./providers";
+import "./globals.css";
+import "./"
 
-@layer base {
-  h1, h2, h3 {
-    font - family: var(--font - serif);
-    letter - spacing: -0.01em;
-  }
+const serif = Spectral({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-serif",
+});
 
-  ::selection {
-    background - color: theme("colors.brass.100");
-  }
+const sans = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-sans",
+});
 
-  : focus - visible {
-    outline: 2px solid theme("colors.brass.DEFAULT");
-    outline - offset: 2px;
-  }
-}
+export const metadata: Metadata = {
+  title: "Reelcue",
+  description: "Fast, tokenized video review and approval for teams and clients.",
+};
 
-@media(prefers - reduced - motion: reduce) {
-  *, *:: before, *::after {
-    animation - duration: 0.01ms!important;
-    animation - iteration - count: 1!important;
-    transition - duration: 0.01ms!important;
-  }
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" className={`${serif.variable} ${sans.variable}`}>
+      <body className="bg-paper font-sans text-ink antialiased">
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  );
 }
