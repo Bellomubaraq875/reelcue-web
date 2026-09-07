@@ -1,15 +1,20 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { useVersion } from "@/hooks/useVersion";
 import { useComments } from "@/hooks/useComments";
+import { useCaptionTrack } from "@/hooks/useCaptionTrack";
 import { useUpdateApproval, type ApprovalStatus } from "@/hooks/useApproval";
 import { VideoPlayer } from "@/components/player/VideoPlayer";
 import { Timeline } from "@/components/player/Timeline";
 import { ProcessingPanel } from "@/components/player/ProcessingPanel";
+import { CaptionOverlay } from "@/components/player/CaptionOverlay";
+import { AnnotationCanvas } from "@/components/player/AnnotationCanvas";
+import { AnnotationToolbar } from "@/components/player/AnnotationToolbar";
+import { VersionTabs } from "@/components/player/VersionTabs";
 import { CommentThread } from "@/components/comments/CommentThread";
 import { CommentComposer } from "@/components/comments/CommentComposer";
-import { useSession } from "next-auth/react";
 
 const APPROVAL_LABEL: Record<ApprovalStatus, string> = {
     PENDING: "Pending",
@@ -18,34 +23,31 @@ const APPROVAL_LABEL: Record<ApprovalStatus, string> = {
     CHANGES_REQUESTED: "Changes requested",
 };
 
+const APPROVAL_DOT: Record<ApprovalStatus, string> = {
+    PENDING: "bg-ink-500",
+    IN_REVIEW: "bg-brass",
+    APPROVED: "bg-moss",
+    CHANGES_REQUESTED: "bg-rust",
+};
+
 export default function VersionReviewPage({
     params,
 }: {
     params: { projectId: string; versionId: string };
 }) {
+    const { data: session } = useSession();
     const { data: version, isLoading: versionLoading } = useVersion(params.versionId);
     const { data: comments } = useComments(params.versionId);
+    const { data: captions } = useCaptionTrack(params.versionId);
     const { mutate: updateApproval, isPending: approvalPending } = useUpdateApproval(
         params.versionId
-    
     );
-    const { data: session } = useSession();
 
     if (versionLoading) return null; // loading.tsx skeleton covers this
     if (!version) return null;
 
     const isProcessing = version.status === "PROCESSING";
     const commentList = comments ?? [];
-
-    {
-        !isProcessing && session?.user && (
-            <CommentComposer
-                versionId={params.versionId}
-                authorName={session.user.name ?? session.user.email ?? "Creator"}
-                authorEmail={session.user.email ?? undefined}
-            />
-        )
-    }
 
     return (
         <div className="mx-auto max-w-6xl px-8 py-10">
@@ -61,8 +63,9 @@ export default function VersionReviewPage({
                     Version {version.versionNumber}
                 </h1>
 
-                <div className="flex items-center gap-2">
-                    <span className="text-sm text-ink-500">
+                <div className="flex items-center gap-3">
+                    <span className="flex items-center gap-1.5 text-sm text-ink-500">
+                        <span className={`h-1.5 w-1.5 rounded-full ${APPROVAL_DOT[version.approvalStatus]}`} />
                         {APPROVAL_LABEL[version.approvalStatus]}
                     </span>
                     <button
@@ -82,13 +85,30 @@ export default function VersionReviewPage({
                 </div>
             </div>
 
+            <div className="mt-6">
+                <VersionTabs projectId={params.projectId} versionId={params.versionId} />
+            </div>
+
             <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+                {/* Player column */}
                 <div className="lg:col-span-2">
                     {isProcessing || !version.storageUrl ? (
                         <ProcessingPanel versionId={params.versionId} />
                     ) : (
                         <>
-                            <VideoPlayer src={version.storageUrl} />
+                            <div className="mb-3">
+                                <AnnotationToolbar />
+                            </div>
+                            <div className="relative">
+                                <VideoPlayer src={version.storageUrl} />
+                                <AnnotationCanvas />
+                                {captions && (
+                                    <CaptionOverlay
+                                        vttData={captions.vttData}
+                                        stylePreset={captions.stylePreset ?? undefined}
+                                    />
+                                )}
+                            </div>
                             <div className="mt-3">
                                 <Timeline comments={commentList} />
                             </div>
@@ -96,10 +116,15 @@ export default function VersionReviewPage({
                     )}
                 </div>
 
+                {/* Comments column */}
                 <div className="flex flex-col gap-6 lg:col-span-1">
                     <CommentThread comments={commentList} />
-                    {!isProcessing && (
-                        <CommentComposer versionId={params.versionId} authorName="You" />
+                    {!isProcessing && session?.user && (
+                        <CommentComposer
+                            versionId={params.versionId}
+                            authorName={session.user.name ?? session.user.email ?? "Creator"}
+                            authorEmail={session.user.email ?? undefined}
+                        />
                     )}
                 </div>
             </div>
